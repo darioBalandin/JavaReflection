@@ -20,15 +20,10 @@ public class Main {
 
         Person person3 = new Person("jose", false, 38, 37000f, address, company, specs, new Person[]{});
 
-
         Person[] people = {person2, person3};
-
         Person person = new Person("dario", true, 34, 34000f, address, company, specs, people);
 
         String serialized = objectToJson(person, 0);
-//        var bool = Collection.class.isAssignableFrom(List.class);
-
-
         System.out.println(serialized);
 
     }
