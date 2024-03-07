@@ -11,10 +11,11 @@ public class Person {
     private final Address address;
     private final Company company;
 
-    private final List<String> specs;
+    private final String[] specs;
 
+    private final Person[] friends;
 
-    public Person(String name, boolean employed, int age, float salary, Address address, Company company, List<String> specs) {
+    public Person(String name, boolean employed, int age, float salary, Address address, Company company, String[] specs, Person[] friends) {
         this.name = name;
         this.employed = employed;
         this.age = age;
@@ -22,5 +23,6 @@ public class Person {
         this.address = address;
         this.company = company;
         this.specs = specs;
+        this.friends = friends;
     }
 }

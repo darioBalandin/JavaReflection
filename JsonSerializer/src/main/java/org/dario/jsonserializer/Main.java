@@ -4,24 +4,29 @@ import org.dario.data.Address;
 import org.dario.data.Company;
 import org.dario.data.Person;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.util.*;
 
 public class Main {
     public static void main(String[] args) throws IllegalAccessException {
 
 
-        Company company= new Company("Google", "san fran", new Address("Bronx ave", (short)456));
+        Company company = new Company("Google", "san fran", new Address("Bronx ave", (short) 456));
 
         Address address = new Address("Pico cejo", (short) 48);
 
-        Person person = new Person("dario", true, 34, 34000f, address, company,List.of("guapo","educado"));
+        String[] specs = {"guapo", "educado"};
+        Person person2 = new Person("javier", true, 36, 37000f, address, company, specs, new Person[]{});
 
-        String serialized = objectToJson(person,0);
+        Person person3 = new Person("jose", false, 38, 37000f, address, company, specs, new Person[]{});
 
 
-        var bool= Collection.class.isAssignableFrom(List.class);
+        Person[] people = {person2, person3};
 
+        Person person = new Person("dario", true, 34, 34000f, address, company, specs, people);
+
+        String serialized = objectToJson(person, 0);
+//        var bool = Collection.class.isAssignableFrom(List.class);
 
 
         System.out.println(serialized);
@@ -47,24 +52,14 @@ public class Main {
             stringBuilder.append(formatStringValue(field.getName()));
             stringBuilder.append(":");
             if (field.getType().isPrimitive()) {
-                stringBuilder.append(formatPrimitiveValue(field, instance));
+                stringBuilder.append(formatPrimitiveValue(field.get(instance), field.getType()));
             } else if (field.getType().equals(String.class)) {
                 stringBuilder.append(formatStringValue(field.get(instance).toString()));
 
-            } else if (Collection.class.isAssignableFrom(instance.getClass())) {
+            } else if (field.getType().isArray()) {
 
-                stringBuilder.append("[");
+                stringBuilder.append(arrayToJson(field.get(instance), indentSize + 1));
 
-                String pueba= Arrays.toString(((Collection<?>) instance).toArray());
-
-                //                StringBuilder arrayB = new StringBuilder();
-//                for (var obj: ((Collection<?>) instance).toArray()){
-//                    arrayB.append(objectToJson(obj,indentSize+1));
-//
-//                }
-//                stringBuilder.append(arrayB.toString());
-                stringBuilder.append("]");
-//                var coll= ((Collection<?>) instance).toArray();
 
             } else {
                 stringBuilder.append(objectToJson(field.get(instance), indentSize + 1));
@@ -82,6 +77,46 @@ public class Main {
         return stringBuilder.toString();
     }
 
+    private static String arrayToJson(Object arrayInstance, int indentSize) throws IllegalAccessException {
+
+        StringBuilder stringBuilder = new StringBuilder();
+
+        int length = Array.getLength(arrayInstance);
+
+
+        Class<?> componentType = arrayInstance.getClass().getComponentType();
+
+        stringBuilder.append("[");
+
+        stringBuilder.append("\n");
+
+        for (int i = 0; i < length; i++) {
+
+            Object element = Array.get(arrayInstance, i);
+
+            if (componentType.isPrimitive()) {
+                stringBuilder.append(indent(indentSize + 1));
+                stringBuilder.append(formatPrimitiveValue(element, componentType));
+            } else if (componentType.equals(String.class)) {
+                stringBuilder.append(indent(indentSize + 1));
+                stringBuilder.append(formatStringValue(element.toString()));
+            } else {
+                stringBuilder.append(objectToJson(element, indentSize + 1));
+            }
+
+            if (i != length - 1) {
+                stringBuilder.append(",");
+            }
+            stringBuilder.append("\n");
+
+        }
+        stringBuilder.append(indent(indentSize));
+        stringBuilder.append("]");
+
+        return stringBuilder.toString();
+
+    }
+
     private static String indent(int indentSize) {
         StringBuilder stringBuilder = new StringBuilder();
 
@@ -91,20 +126,20 @@ public class Main {
         return stringBuilder.toString();
     }
 
-    private static String formatPrimitiveValue(Field field, Object parentInstance) throws IllegalAccessException {
-        if (field.getType().equals(boolean.class)
-                || field.getType().equals(int.class)
-                || field.getType().equals(short.class)
-                || field.getType().equals(long.class)
+    private static String formatPrimitiveValue(Object instance, Class<?> type) throws IllegalAccessException {
+        if (type.equals(boolean.class)
+                || type.equals(int.class)
+                || type.equals(short.class)
+                || type.equals(long.class)
 
         ) {
-            return field.get(parentInstance).toString();
-        } else if (field.getType().equals(double.class) || field.getType().equals(float.class)) {
+            return instance.toString();
+        } else if (type.equals(double.class) || type.equals(float.class)) {
             return String.format("%.02f",
-                    field.get(parentInstance));
+                    instance);
 
         }
-        throw new RuntimeException(String.format("Type : %s not supported", field.getType().getName()));
+        throw new RuntimeException(String.format("Type : %s not supported", type.getName()));
 
     }
 
