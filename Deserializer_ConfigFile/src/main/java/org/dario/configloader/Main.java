@@ -4,6 +4,7 @@ import org.dario.data.GameConfig;
 import org.dario.data.UserInterfaceConfig;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -12,19 +13,19 @@ import java.util.Scanner;
 
 public class Main {
 
-    public static final Path PATH_USER_INTERFACE_CONFIG = Path.of("C:\\Users\\DarioGarciaBalandin\\Desktop\\Repositories\\JavaReflection\\Deserializer_ConfigFile\\src\\main\\resources\\user-interface.cfg");
+    public static final Path PATH_USER_INTERFACE_CONFIG = Path.of("src\\main\\resources\\user-interface.cfg");
     public static final Path PATH_GAME = Path.of("C:\\Users\\DarioGarciaBalandin\\Desktop\\Repositories\\JavaReflection\\Deserializer_ConfigFile\\src\\main\\resources\\game-properties.cfg");
 
     public static void main(String[] args) throws IOException, InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
 
 
-        UserInterfaceConfig userInterfaceConfig= createConfigObject(UserInterfaceConfig.class, PATH_USER_INTERFACE_CONFIG);
+        GameConfig gameConfig = createConfigObject(GameConfig.class, PATH_GAME);
+        UserInterfaceConfig userInterfaceConfig = createConfigObject(UserInterfaceConfig.class, PATH_USER_INTERFACE_CONFIG);
 
 
-        GameConfig gameConfig= createConfigObject(GameConfig.class, PATH_GAME);
 
 
-        System.out.println("Hello world!");
+        System.out.println(gameConfig);
     }
 
 
@@ -56,13 +57,31 @@ public class Main {
             }
             field.setAccessible(true);
 
-            Object parsedValue = parseValue(field.getType(), propertyValue);
+            Object parsedValue;
 
+            if (field.getType().isArray()) {
+                parsedValue = parseArray(field.getType().getComponentType(), propertyValue);
+            } else {
+                parsedValue = parseValue(field.getType(), propertyValue);
+            }
             field.set(configInstance, parsedValue);
 
         }
 
         return configInstance;
+
+
+    }
+
+    private static Object parseArray(Class<?> arrayElementType, String value) {
+        String[] elementValues = value.split(",");
+
+        Object arrayObject = Array.newInstance(arrayElementType, elementValues.length);
+        for (int i = 0; i < elementValues.length; i++) {
+            Array.set(arrayObject, i, parseValue(arrayElementType, elementValues[i]));
+        }
+
+        return arrayObject;
 
 
     }
@@ -85,6 +104,6 @@ public class Main {
             return propertyValue;
 
         }
-        throw new RuntimeException(String.format("Type : %s not supported",type.getTypeName()));
+        throw new RuntimeException(String.format("Type : %s not supported", type.getTypeName()));
     }
 }
