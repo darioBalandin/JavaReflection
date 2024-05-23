@@ -21,8 +21,12 @@ public class Product {
         this.name = name;
     }
 
-    public long setQuantity(long quantity) {
-        return this.quantity = quantity;
+    public void setQuantity(long quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
     }
 
     public void setExpirationDate(Date expirationDate) {

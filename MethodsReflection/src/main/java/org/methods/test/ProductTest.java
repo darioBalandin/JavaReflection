@@ -6,7 +6,10 @@ import org.methods.api.Product;
 import java.awt.event.ItemListener;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -18,6 +21,7 @@ public class ProductTest {
 
         Map<String, Method> stringMethodMap = mapMethodNametoMethod(Product.class);
         Map<String, Method> stringMethodMap1 = filterObjectMethods(stringMethodMap);
+        List<Field> allFields = getAllFields(ArrayList.class);
         testGetters(Product.class);
 
         testSetters(Product.class);
@@ -51,6 +55,20 @@ public class ProductTest {
                 throw new IllegalStateException("Tipo de retorno erroneo : " + setterName + "();");
             }
         }
+    }
+
+    public static List<Field> getAllFields(Class<?> clazz){
+        if (clazz==null || clazz.equals(Object.class)){
+            return Collections.emptyList();
+        }
+        Field[] declaredFields = clazz.getDeclaredFields();
+        List<Field> superClassFields = getAllFields(clazz.getSuperclass());
+
+        List<Field> allFields = new ArrayList<>();
+        allFields.addAll(List.of(declaredFields));
+        allFields.addAll(superClassFields);
+
+        return allFields;
     }
 
     public static void testGetters(Class<?> clazz) {
